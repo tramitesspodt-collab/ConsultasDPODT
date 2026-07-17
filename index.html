@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Gestión Territorial - La Paz Este</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav>
+  <div class="nav-content">
+    <div class="logo-text">ALCALDIA LA PAZ ESTE</div>
+    <div class="nav-links">
+      <a href="#inicio">Inicio</a>
+      <a href="#consulta">Consulta</a>
+      <a href="#tramites">Formularios</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero" id="inicio">
+  <div class="hero-content">
+    <h2>Departamento de Planificación Ordenamiento y Desarrollo Territorial</h2>
+    <p>Consulta de expedientes y descarga de documentación</p>
+  </div>
+</section>
+
+<div class="search-section" id="consulta">
+  <div class="search-card">
+    <h3 style="text-align: center; font-size: 1.1rem; font-weight: 700;">Digite el numero de DUI sin guiones del Propietario del inmueble</h3>
+    <div class="search-group">
+      <input type="text" id="duiInput" placeholder="Ingrese DUI sin guiones">
+      <button class="btn-search" onclick="buscarExpediente()">CONSULTAR</button>
+    </div>
+    <div id="res-box" class="fade-in"></div>
+  </div>
+</div>
+
+<div class="section-container" id="tramites">
+  <div class="section-title">
+    <h3>Documentación Técnica</h3>
+    <div class="divider"></div>
+  </div>
+
+  <div class="folder-grid">
+    <div class="folder-card" onclick="openFolder('habitacional')">
+      <div class="folder-icon"><i class="fas fa-home"></i></div>
+      <h4>Habitacional</h4>
+      <p>Proyectos de vivienda y obras menores.</p>
+    </div>
+    <div class="folder-card" onclick="openFolder('comercial')">
+      <div class="folder-icon"><i class="fas fa-store"></i></div>
+      <h4>Comercial</h4>
+      <p>Factibilidades y obras mayores comerciales.</p>
+    </div>
+    <a href="https://drive.google.com/uc?export=download&id=1csumbIDoq47iIernN1nEFVQwGYc3gjHV" class="folder-card">
+      <div class="folder-icon"><i class="fas fa-road"></i></div>
+      <h4>Vía Pública</h4>
+      <p>Permisos de rompimiento de calle.</p>
+    </a>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-habitacional" onclick="closeFolder(event)">
+  <div class="modal-content">
+    <h4 style="margin-bottom: 20px;">Trámites Habitacionales</h4>
+    <a href="https://drive.google.com/uc?export=download&id=1Fzm1oy9GY7SryM-g1gGGRpaxwUGTgwrC" class="dl-item"><i class="fas fa-file-pdf"></i><span>Obra Menor (menores a 125 metros cuadrados)</span></a>
+    <a href="https://drive.google.com/uc?export=download&id=1et0m85PU-oY4r5fD5tPlBu3runZ3P_qt" class="dl-item"><i class="fas fa-file-pdf"></i><span>Obra Mayor (mayores a 125 metros cuadrados)</span></a>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-comercial" onclick="closeFolder(event)">
+  <div class="modal-content">
+    <h4 style="margin-bottom: 20px;">Trámites Comerciales</h4>
+    <a href="https://drive.google.com/uc?export=download&id=1s3sobX7qcgeybkl1eqBleQdCbvAu9h91" class="dl-item"><i class="fas fa-file-signature"></i><span>Factibilidad</span></a>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
