@@ -1,129 +1,179 @@
-function openFolder(id) { document.getElementById('modal-' + id).classList.add('active'); }
-function closeFolder(e) { if(e.target.classList.contains('modal-overlay')) e.target.classList.remove('active'); }
+// ==========================================================================
+// CONFIGURACIÓN PRINCIPAL
+// Reemplaza esta URL por la URL de tu Web App de Google Apps Script
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbx_oWBKQfTqbWSgV7Wn4DWFN5DP3elRkoC_zCZVSmfAiGp-RaF6-pC9KRGohF_pzPn2/exec'; 
+// ==========================================================================
 
+// ==========================================
+// ====== MÓDULO DE CONSULTA DE EXPEDIENTE ======
+// ==========================================
 function buscarExpediente() {
-  const raw = document.getElementById('duiInput').value.trim();
-  const box = document.getElementById('res-box');
-  if(!raw) return;
+  const dui = document.getElementById('duiInput').value.trim();
+  const resBox = document.getElementById('res-box');
 
-  // Quitar cualquier caracter que no sea numero (guiones, espacios, puntos, etc.)
-  const soloDigitos = raw.replace(/\D/g, '');
-  if(!soloDigitos) return;
+  if (!dui) {
+    resBox.innerHTML = '<p style="color: #991b1b; text-align: center; font-size: 0.9rem; font-weight: 600;">Por favor, ingrese un número de DUI válido.</p>';
+    return;
+  }
 
-  // Normalizamos quitando ceros a la izquierda para comparar sin importar el formato guardado en la hoja
-  const duiNormalizado = soloDigitos.replace(/^0+/, '') || '0';
+  resBox.innerHTML = '<p style="text-align: center; color: var(--text-muted); font-size: 0.9rem;">Consultando base de datos municipal...</p>';
 
-  box.style.display = 'block';
-  box.classList.remove('fade-in');
-  void box.offsetWidth; // Trigger reflow para reiniciar animación
-  box.classList.add('fade-in');
-  
-  box.innerHTML = '<p style="text-align:center; font-size: 0.9rem; color: var(--text-muted);"><i class="fas fa-spinner fa-spin"></i> Consultando base de datos...</p>';
-
-  const sheetId = '1dijmg1eUKdXQgEpRZQYmrLQl8uMqLmqqI1IJdWAaUio';
-  const sheetName = 'Respuestas de formulario 2';
-  
-  // SQL: E(0), G(1), H(2), I(3), K(4), N(5), P(6), T(7), Q(8), U(9), V(10), Y(11), Z(12), AK(13)
-  const query = encodeURIComponent(`SELECT E, G, H, I, K, N, P, T, Q, U, V, Y, Z, AK`);
-  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&tq=${query}&tqx=responseHandler:procesarRespuesta&_=${Date.now()}`;
-
-  window.duiBuscadoNormalizado = duiNormalizado;
-
-  // Eliminar el script anterior (si existe) para evitar que una respuesta vieja/cacheada sobreescriba la nueva
-  const scriptAnterior = document.getElementById('gviz-script');
-  if (scriptAnterior) scriptAnterior.remove();
-
-  const script = document.createElement('script');
-  script.id = 'gviz-script';
-  script.src = url;
-  document.body.appendChild(script);
+  // Petición al backend de Apps Script
+  fetch(`${WEB_APP_URL}?action=buscarExpediente&dui=${encodeURIComponent(dui)}`)
+    .then(response => response.json())
+    .then(data => {
+      // Ajusta las variables "data.encontrado", "nombre", "tramite", etc., 
+      // a lo que exactamente devuelve tu archivo Código.gs
+      if (data.encontrado) {
+        resBox.innerHTML = `
+          <div style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 16px; text-align: left;">
+            <p style="margin-bottom: 8px; font-size: 0.9rem;"><strong>Propietario:</strong> ${data.nombre}</p>
+            <p style="margin-bottom: 8px; font-size: 0.9rem;"><strong>Trámite:</strong> ${data.tramite}</p>
+            <p style="margin-bottom: 0; font-size: 0.9rem;"><strong>Estado actual:</strong> <span style="color: var(--accent); font-weight: 600;">${data.estado}</span></p>
+          </div>
+        `;
+      } else {
+        resBox.innerHTML = '<p style="color: #991b1b; text-align: center; font-size: 0.9rem; font-weight: 600;">No se encontraron expedientes activos para el DUI ingresado.</p>';
+      }
+    })
+    .catch(error => {
+      console.error('Error de conexión:', error);
+      resBox.innerHTML = '<p style="color: #991b1b; text-align: center; font-size: 0.9rem; font-weight: 600;">Error de red. Intente nuevamente en unos instantes.</p>';
+    });
 }
 
-window.procesarRespuesta = function(data) {
-  const box = document.getElementById('res-box');
-  const duiBuscado = window.duiBuscadoNormalizado || '';
+// ==========================================
+// ====== GESTIÓN DE MODALES (CARPETAS) ======
+// ==========================================
+function openFolder(tipo) {
+  document.getElementById('modal-' + tipo).classList.add('active');
+}
 
-  if (data.status === 'error') {
-    console.error('Error de Google Sheets:', data.errors);
-    box.innerHTML = '<div style="color:#991b1b; text-align:center; padding: 20px; background:#fee2e2; border-radius:14px; font-weight:600;">No se encontraron registros para el DUI ingresado.</div>';
-    return;
+function closeFolder(event) {
+  if (event.target.classList.contains('modal-overlay')) {
+    event.target.classList.remove('active');
   }
+}
 
-  console.log('DUI buscado (normalizado):', duiBuscado);
-  console.log('Total de filas recibidas de la hoja:', data.table.rows.length);
-  console.log('Valores columna N:', data.table.rows.map(r => r.c[5] ? r.c[5].v : null));
-  console.log('Valores columna P:', data.table.rows.map(r => r.c[6] ? r.c[6].v : null));
-  console.log('Valores columna T:', data.table.rows.map(r => r.c[7] ? r.c[7].v : null));
+// ==========================================
+// ====== CALCULADORA DE ESTIMADOS ======
+// ==========================================
+let _calcConceptos = [];
+let _calcContadorFilas = 0;
 
-  // Filtramos en el cliente comparando el DUI normalizado (sin guiones, espacios ni ceros a la izquierda)
-  // contra las columnas N, P y T, para que coincida sin importar en cual de las tres este el dato
-  const normalizar = (v) => String(v || '').replace(/\D/g, '').replace(/^0+/, '') || '0';
-  const filasCoincidentes = data.table.rows.filter(row => {
-    const valN = row.c[5] ? row.c[5].v : '';
-    const valP = row.c[6] ? row.c[6].v : '';
-    const valT = row.c[7] ? row.c[7].v : '';
-    return normalizar(valN) === duiBuscado || normalizar(valP) === duiBuscado || normalizar(valT) === duiBuscado;
+document.addEventListener('DOMContentLoaded', _calcInicializar);
+
+function _calcInicializar() {
+  fetch(`${WEB_APP_URL}?action=obtenerConceptos`)
+    .then(response => response.json())
+    .then(conceptos => {
+      _calcConceptos = conceptos || [];
+      if (!_calcConceptos.length) return; 
+      
+      // Mostrar la sección solo si el backend responde con datos
+      document.getElementById('calculadora-section').style.display = 'block';
+      _calcAgregarFila();
+    })
+    .catch(error => {
+      console.warn('Servicio de calculadora temporalmente no disponible.', error);
+    });
+}
+
+function _calcAgregarFila() {
+  const id = 'calc-fila-' + (_calcContadorFilas++);
+  const opciones = _calcConceptos.map(c => `<option value="${_escAttr(c.proyecto)}">${_escHtmlCalc(c.proyecto)}</option>`).join('');
+  const div = document.createElement('div');
+  
+  div.id = id;
+  div.className = 'calc-fila';
+  div.innerHTML = `
+    <select class="calc-select"><option value="">Seleccione concepto...</option>${opciones}</select>
+    <input type="number" min="0" step="any" placeholder="Cant." class="calc-input">
+    <button type="button" onclick="document.getElementById('${id}').remove()" style="background:#fee2e2; color:#991b1b; border:none; width:38px; height:38px; border-radius:10px; font-weight:700; cursor:pointer; flex-shrink:0; transition: transform 0.2s;">×</button>
+  `;
+  document.getElementById('calc-filas').appendChild(div);
+}
+
+function _escAttr(s) { 
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;'); 
+}
+
+function _escHtmlCalc(s) { 
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); 
+}
+
+function _calcCalcular() {
+  const filas = document.querySelectorAll('#calc-filas > div');
+  const items = [];
+  
+  filas.forEach(fila => {
+    const select = fila.querySelector('select');
+    const input = fila.querySelector('input');
+    if (select.value && input.value) {
+      items.push({ proyecto: select.value, cantidad: input.value });
+    }
   });
 
-  if (filasCoincidentes.length === 0) {
-    box.innerHTML = '<div style="color:#991b1b; text-align:center; padding: 20px; background:#fee2e2; border-radius:14px; font-weight:600;">No se encontraron registros para el DUI ingresado.</div>';
+  const cont = document.getElementById('calc-resultado');
+
+  if (!items.length) {
+    cont.style.display = 'block';
+    cont.innerHTML = '<p style="text-align:center; color:#991b1b; font-size: 0.9rem; font-weight:600;">Complete al menos un concepto con su respectiva cantidad.</p>';
+    return;
+  }
+  
+  const zona = document.getElementById('calc-zona').value;
+  if (!zona) {
+    cont.style.display = 'block';
+    cont.innerHTML = '<p style="text-align:center; color:#991b1b; font-size: 0.9rem; font-weight:600;">Seleccione el tipo de zona (Urbana o Rural).</p>';
     return;
   }
 
-  let html = '';
-  filasCoincidentes.forEach(row => {
-    const c = row.c;
-    const getV = (i) => c[i] ? (c[i].f || c[i].v) : '---';
-    console.log('Fila completa (raw):', JSON.stringify(row));
-    console.log('Celda Y (Area Terreno) indice 11:', c[11]);
-    console.log('Celda Z (Area Intervenir) indice 12:', c[12]);
-    
-    const nExpediente = getV(0);
-    const ubicacion = getV(1);
-    const tipoProceso = getV(2);
-    const fechaIngreso = getV(3);
-    const propietario = getV(4);
-    const responsable = getV(8);
-    const direccion = getV(9);
-    const nProyecto = getV(10);
-    const areaTerreno = getV(11);
-    const areaIntervenir = getV(12);
-    const estadoOriginal = getV(13);
-    // Quitar tildes/acentos para que la comparacion no falle (ej: "INSPECCIÓN" -> "INSPECCION")
-    const estado = estadoOriginal.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    
-    let stStyle = "background:#e2e8f0; color:#475569;"; // Gris (default / REGISTRADO)
-    if(estado.includes("INSPECCIONADO") && estado.includes("MANDAMIENTO")) stStyle = "background:#dbeafe; color:#1e40af;"; // Azul (INSPECCIONADO Y CON MANDAMIENTO)
-    else if(estado.includes("MANDAMIENTO")) stStyle = "background:#dcfce7; color:#166534;"; // Verde (MANDAMIENTO GENERADO / MANDAMIENTO DE PAGO GENERADO)
-    else if(estado.includes("FINALIZADO")) stStyle = "background:#064e3b; color:#ffffff;"; // Verde fuerte
-    else if(estado.includes("PENDIENTE") && estado.includes("INSPECCION")) stStyle = "background:#ffedd5; color:#9a3412;"; // Naranja
-    else if(estado.includes("PERMISO PROVISIONAL")) stStyle = "background:#cffafe; color:#155e75;"; // Celeste
-    else if(estado.includes("OBSERVADO")) stStyle = "background:#fee2e2; color:#991b1b;"; // Rojo
-    else if(estado.includes("INSPECCIONADO")) stStyle = "background:#dbeafe; color:#1e40af;"; // Azul
-    else if(estado.includes("REGISTRADO")) stStyle = "background:#e2e8f0; color:#475569;"; // Gris
+  const datos = {
+    items: items,
+    monto: document.getElementById('calc-monto').value || 0,
+    zona: zona,
+    tipoPersona: document.getElementById('calc-tipoPersona').value
+  };
 
-    html += `
-      <div class="result-item">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px;">
-          <span style="font-weight:800; color:var(--accent); font-size: 1.1rem;">EXP: ${nExpediente}</span>
-          <span class="status-badge" style="${stStyle}">${estadoOriginal.toUpperCase()}</span>
-        </div>
-        
-        <div style="font-size: 0.9rem; color: #1e293b; margin-bottom: 5px;">
-          <h4 style="color: #0a2a66; margin-bottom: 8px; text-transform: uppercase;">${nProyecto}</h4>
-        </div>
+  cont.style.display = 'block';
+  cont.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size: 0.9rem;">Procesando cálculo...</p>';
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 0.85rem;">
-          <div><strong>Propietario:</strong><br>${propietario}</div>
-          <div><strong>Responsable:</strong><br>${responsable}</div>
-          <div><strong>Tipo Proceso:</strong><br>${tipoProceso}</div>
-          <div><strong>Fecha Ingreso:</strong><br>${fechaIngreso}</div>
-          <div><strong>Área Terreno:</strong><br>${areaTerreno} m²</div>
-          <div><strong>Área Intervenir:</strong><br>${areaIntervenir} m²</div>
-          <div style="grid-column: span 2;"><strong>Ubicación:</strong><br>${ubicacion}</div>
-          <div style="grid-column: span 2; padding: 10px; background: #fff; border-radius: 8px; border: 1px solid #edf2f7; transition: 0.3s ease;"><strong>Dirección Notificación:</strong><br>${direccion}</div>
-        </div>
+  fetch(WEB_APP_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'calcularEstimado', payload: datos })
+  })
+  .then(response => response.json())
+  .then(res => {
+    const fila = (etiqueta, monto, atenuado) => `
+      <div style="display:flex; justify-content:space-between; font-size:.85rem; padding:6px 0; ${atenuado ? 'color:var(--text-muted);' : 'color:#111827; font-weight:600;'}">
+        <span>${etiqueta}</span><span>$${parseFloat(monto).toFixed(2)}</span>
       </div>`;
+
+    let html = '<div style="border-top:2px solid #f1f5f9; padding-top:14px; animation: fadeIn 0.4s ease;">';
+    
+    // Desglose de conceptos
+    res.desglose.forEach(d => { 
+      html += fila(`${_escHtmlCalc(d.proyecto)} (${d.cantidad})`, d.subtotal, true); 
+    });
+    
+    if (res.multaBase > 0) html += fila('Multa base (1% del presupuesto)', res.multaBase, true);
+    
+    html += fila('Total Tasa', res.mult, false);
+    html += fila('Inspección' + (res.inspeccion === 0 ? ' (no aplica)' : ''), res.inspeccion, true);
+    html += fila('Subtotal', res.subtotal, false);
+    html += fila('Fiestas' + (res.hayFianza ? ' (exento por fianza)' : ' (5%)'), res.fiestas, true);
+    
+    html += `
+      <div style="display:flex; justify-content:space-between; margin-top:10px; padding-top:10px; border-top:1px solid #f1f5f9; font-size:1.15rem; font-weight:700; color:#111827;">
+        <span>Total estimado</span><span>$${parseFloat(res.total).toFixed(2)}</span>
+      </div>
+    </div>`;
+    
+    cont.innerHTML = html;
+  })
+  .catch(e => {
+    console.error('Error al calcular:', e);
+    cont.innerHTML = `<p style="text-align:center; color:#991b1b; font-weight:600; font-size: 0.9rem;">No se pudo procesar el cálculo. Verifique la conexión.</p>`;
   });
-  box.innerHTML = html;
-};
+}
