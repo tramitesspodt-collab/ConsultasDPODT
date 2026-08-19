@@ -2,63 +2,62 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <title>DPODT - La Paz Este</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Portal Ciudadano — Alcaldía La Paz Este</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
+<div class="top-loader" id="top-loader"><div class="top-loader-bar"></div></div>
+
 <nav>
   <div class="nav-content">
     <div class="logo-text">ALCALDIA LA PAZ ESTE</div>
     <div class="nav-links">
-      <a href="#inicio">Inicio</a>
-      <a href="#consulta">Consulta</a>
-      <a href="#tramites">Formularios</a>
+      <a onclick="window.scrollTo({top: 0, behavior: 'smooth'})">Inicio</a>
+      <a onclick="document.getElementById('consulta').scrollIntoView({behavior:'smooth'})">Consulta</a>
+      <a onclick="document.getElementById('tramites').scrollIntoView({behavior:'smooth'})">Formularios</a>
+      <button onclick="irALogin()" class="btn-intern">Acceso Personal</button>
     </div>
   </div>
 </nav>
 
 <section class="hero" id="inicio">
   <div class="hero-content">
+    <span class="hero-badge"><i class="fas fa-landmark"></i> Alcaldía La Paz Este</span>
     <h2>Departamento de Planificación Ordenamiento y Desarrollo Territorial</h2>
-    <p>Consulta de expedientes y descarga de documentación</p>
+    <p>Alcaldía Municipal de La Paz Este</p>
   </div>
 </section>
 
 <div class="search-section" id="consulta">
   <div class="search-card">
-    <h3 style="text-align: center; font-size: 1.1rem; font-weight: 700;">Digite el numero de DUI del Propietario del inmueble</h3>
-    <div class="search-group">
-      <input type="text" id="duiInput" placeholder="Ingrese número de DUI">
-      <button class="btn-search" onclick="buscarExpediente()">CONSULTAR</button>
+    <h3 style="text-align: center; font-size: 1.25rem; font-weight: 800;"><i class="fas fa-magnifying-glass" style="color:var(--accent); font-size:1rem;"></i> Estado de su Expediente</h3>
+    <div id="criterio-wrap" style="display:none; margin-bottom:12px;">
+      <label style="font-size:.8rem; color:var(--text-muted, #6b7280); font-weight:600; display:block; margin-bottom:6px;">Buscar por:</label>
+      <select id="criterioBusqueda" style="width:100%; padding:12px; border-radius:12px; border:1.5px solid #e2e8f0; font-size:.9rem; background:#fff;"></select>
     </div>
-    <div id="res-box" class="fade-in"></div>
+    <div class="search-group">
+      <input type="text" id="expId" placeholder="Ejemplo: PC-2026-13">
+      <button class="btn-search" onclick="consultar()">CONSULTAR</button>
+    </div>
+    <div id="res-box"></div>
   </div>
 </div>
 
-<!-- NUEVA SECCIÓN: Calculadora de Estimado -->
 <div class="search-section" id="calculadora-section" style="display:none;">
   <div class="search-card">
-    <h3 style="text-align: center; font-size: 1.1rem; font-weight: 700;">Calculadora de Estimado</h3>
-    <p style="text-align:center; color:var(--text-muted, #64748b); font-size:.85rem; margin-top:-8px; margin-bottom: 20px;">
-      Una idea aproximada de cuánto pagaría por su trámite.
-    </p>
+    <h3 style="text-align: center; font-size: 1.25rem; font-weight: 800;"><i class="fas fa-calculator" style="color:var(--accent); font-size:1rem;"></i> Calculadora de Estimado</h3>
+    <p style="text-align:center; color:var(--text-muted, #6b7280); font-size:.85rem; margin-top:-8px;">Una idea aproximada de cuánto pagaría por su trámite.</p>
 
     <div id="calc-filas"></div>
-    
-    <button type="button" onclick="_calcAgregarFila()" style="background:none; border:1.5px dashed var(--accent, #0071e3); color:var(--accent, #0071e3); border-radius:12px; padding:10px; width:100%; font-weight:600; cursor:pointer; margin-top:12px; transition: all 0.2s ease;">
-      + Agregar otro concepto
-    </button>
+    <button type="button" onclick="_calcAgregarFila()" style="background:none; border:1.5px dashed var(--accent); color:var(--accent); border-radius:12px; padding:10px; width:100%; font-weight:700; cursor:pointer; margin-top:8px;">+ Agregar otro concepto</button>
 
-    <div style="display:flex; gap:12px; margin-top:20px;">
+    <div style="display:flex; gap:8px; margin-top:18px;">
       <div style="flex:1; min-width:0;">
-        <label style="font-size:.76rem; color:var(--text-muted, #64748b); font-weight:600; display:block; margin-bottom:5px;">Zona</label>
+        <label style="font-size:.76rem; color:var(--text-muted, #6b7280); font-weight:600; display:block; margin-bottom:5px;">Zona</label>
         <select id="calc-zona" class="calc-campo">
           <option value="">Seleccione...</option>
           <option value="URBANA">Urbana</option>
@@ -67,7 +66,7 @@
         </select>
       </div>
       <div style="flex:1; min-width:0;">
-        <label style="font-size:.76rem; color:var(--text-muted, #64748b); font-weight:600; display:block; margin-bottom:5px;">Persona</label>
+        <label style="font-size:.76rem; color:var(--text-muted, #6b7280); font-weight:600; display:block; margin-bottom:5px;">Persona</label>
         <select id="calc-tipoPersona" class="calc-campo">
           <option value="NATURAL" selected>Natural</option>
           <option value="JURIDICA">Jurídica</option>
@@ -75,63 +74,86 @@
         </select>
       </div>
     </div>
-
-    <div style="margin-top:14px;">
-      <label style="font-size:.76rem; color:var(--text-muted, #64748b); font-weight:600; display:block; margin-bottom:5px;">Monto del presupuesto ($)</label>
+    <div style="margin-top:12px;">
+      <label style="font-size:.76rem; color:var(--text-muted, #6b7280); font-weight:600; display:block; margin-bottom:5px;">Monto del presupuesto ($)</label>
       <input type="number" min="0" step="any" id="calc-monto" placeholder="0.00" class="calc-campo" style="width:100%;">
     </div>
 
-    <button class="btn-search" style="width:100%; margin-top:20px; justify-content:center;" onclick="_calcCalcular()">
-      CALCULAR ESTIMADO
-    </button>
+    <button class="btn-search" style="width:100%; margin-top:16px; justify-content:center;" onclick="_calcCalcular()">CALCULAR ESTIMADO</button>
 
     <div id="calc-resultado" style="display:none; margin-top:20px;"></div>
 
-    <div style="margin-top:20px; padding:14px; background:#fef9c3; border-radius:12px; display:flex; gap:10px; align-items:flex-start; border: 1px solid #fde047;">
-      <p style="font-size:.8rem; color:#a16207; line-height:1.5; margin:0;">
-        <strong>Aviso:</strong> Esto es solo un estimado. El monto real se calcula hasta que se presenta la documentación completa del trámite, y puede variar según la revisión técnica.
-      </p>
+    <div style="margin-top:18px; padding:14px; background:#fef9c3; border-radius:12px; display:flex; gap:10px; align-items:flex-start;">
+      <i class="fas fa-triangle-exclamation" style="color:#a16207; margin-top:2px;"></i>
+      <p style="font-size:.8rem; color:#a16207; line-height:1.5; margin:0;"><strong>Esto es solo un estimado.</strong> El monto real se calcula hasta que se presenta la documentación completa del trámite, y puede variar según la revisión técnica.</p>
     </div>
   </div>
 </div>
 
 <div class="section-container" id="tramites">
   <div class="section-title">
-    <h3>Documentación Técnica</h3>
+    <h3>Descarga de Formularios</h3>
     <div class="divider"></div>
   </div>
 
   <div class="folder-grid">
     <div class="folder-card" onclick="openFolder('habitacional')">
-      <div class="folder-icon"><i class="fas fa-home"></i></div>
+      <div class="folder-icon-main"><i class="fas fa-home"></i></div>
       <h4>Habitacional</h4>
-      <p>Proyectos de vivienda y obras menores.</p>
+      <p>Proyectos habitacionales, obras menores y construcción de viviendas.</p>
     </div>
+
     <div class="folder-card" onclick="openFolder('comercial')">
-      <div class="folder-icon"><i class="fas fa-store"></i></div>
+      <div class="folder-icon-main"><i class="fas fa-building"></i></div>
       <h4>Comercial</h4>
-      <p>Factibilidades y obras mayores comerciales.</p>
+      <p>Factibilidad de Construcción para negocios y obras mayores de construcción.</p>
     </div>
-    <a href="https://drive.google.com/uc?export=download&id=1csumbIDoq47iIernN1nEFVQwGYc3gjHV" class="folder-card">
-      <div class="folder-icon"><i class="fas fa-road"></i></div>
-      <h4>Vía Pública</h4>
-      <p>Permisos de rompimiento de vía.</p>
+
+    <a href="https://drive.google.com/uc?export=download&id=1csumbIDoq47iIernN1nEFVQwGYc3gjHV" target="_blank" style="text-decoration: none;">
+      <div class="folder-card">
+        <div class="folder-icon-main"><i class="fas fa-road"></i></div>
+        <h4 style="color: var(--primary);">Vía Pública</h4>
+        <p>Permisos para rompimiento de vías municipales.</p>
+      </div>
     </a>
   </div>
 </div>
 
+<footer>© <span id="anio-footer"></span> Alcaldía Municipal de La Paz Este — Departamento de Planificación, Ordenamiento y Desarrollo Territorial</footer>
+
 <div class="modal-overlay" id="modal-habitacional" onclick="closeFolder(event)">
   <div class="modal-content">
-    <h4 style="margin-bottom: 20px;">Trámites Habitacionales</h4>
-    <a href="https://drive.google.com/uc?export=download&id=1Fzm1oy9GY7SryM-g1gGGRpaxwUGTgwrC" class="dl-item"><i class="fas fa-file-pdf"></i><span>Obra Menor (menores a 125 metros cuadrados)</span></a>
-    <a href="https://drive.google.com/uc?export=download&id=1et0m85PU-oY4r5fD5tPlBu3runZ3P_qt" class="dl-item"><i class="fas fa-file-pdf"></i><span>Obra Mayor (mayores a 125 metros cuadrados)</span></a>
+    <button type="button" class="modal-close" onclick="document.getElementById('modal-habitacional').classList.remove('active')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+    <h4 style="margin-bottom: 8px; font-size: 1.5rem;">Trámites Habitacionales</h4>
+    <p style="color:var(--text-muted); font-size: 0.95rem; margin-bottom: 22px;">Seleccione el formulario adecuado:</p>
+    <a href="https://drive.google.com/uc?export=download&id=1Fzm1oy9GY7SryM-g1gGGRpaxwUGTgwrC" target="_blank" class="dl-item">
+      <i class="fas fa-file-pdf"></i>
+      <div><span>Obra Menor</span><small>Proyectos hasta 125 m².</small></div>
+    </a>
+    <a href="https://drive.google.com/uc?export=download&id=1et0m85PU-oY4r5fD5tPlBu3runZ3P_qt" target="_blank" class="dl-item">
+      <i class="fas fa-file-pdf"></i>
+      <div><span>Obra Mayor</span><small>Proyectos mayores a 125 m².</small></div>
+    </a>
   </div>
 </div>
 
 <div class="modal-overlay" id="modal-comercial" onclick="closeFolder(event)">
   <div class="modal-content">
-    <h4 style="margin-bottom: 20px;">Trámites Comerciales</h4>
-    <a href="https://drive.google.com/uc?export=download&id=1s3sobX7qcgeybkl1eqBleQdCbvAu9h91" class="dl-item"><i class="fas fa-file-signature"></i><span>Factibilidad</span></a>
+    <button type="button" class="modal-close" onclick="document.getElementById('modal-comercial').classList.remove('active')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+    <h4 style="margin-bottom: 8px; font-size: 1.5rem;">Trámites Comerciales</h4>
+    <p style="color:var(--text-muted); font-size: 0.95rem; margin-bottom: 22px;">Documentos para negocios:</p>
+    <a href="https://drive.google.com/uc?export=download&id=1s3sobX7qcgeybkl1eqBleQdCbvAu9h91" target="_blank" class="dl-item">
+      <i class="fas fa-file-signature"></i>
+      <div><span>Factibilidad de Construcción</span><small>Formulario para factibilidades de construcción.</small></div>
+    </a>
+    <a href="https://drive.google.com/uc?export=download&id=1et0m85PU-oY4r5fD5tPlBu3runZ3P_qt" target="_blank" class="dl-item">
+      <i class="fas fa-file-pdf"></i>
+      <div><span>Construcción Comercial</span><small>Formulario de Obra Mayor.</small></div>
+    </a>
   </div>
 </div>
 
