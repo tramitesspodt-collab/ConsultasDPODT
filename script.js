@@ -11,7 +11,7 @@
 
    CONFIGURACIÓN — lo único que hay que llenar antes de publicar:
    ============================================================================ */
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwBBuQJMoWBDqp7TVZGk0C9g_hbNsuMaPFcAzlSXeRBaqFsoAAOS4vNfUtyytQBdFFL/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzaw5AIUalwPCjf8GUmMheduRnf1TWJlyXMHBRKdxU7lzt4lI2ShUpeMrSclgl-w73K/exec";
 // Cómo conseguirla: en el editor de Apps Script → Implementar → Administrar
 // implementaciones → (el ícono de engranaje/copiar) → "URL de la aplicación web".
 // Debe verse algo así: https://script.google.com/macros/s/AKfycb.../exec
@@ -75,18 +75,24 @@ function _escHtmlCalc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp
 /* ============================================================================
    Buscador de expedientes — se cargan los criterios activos al abrir la página. Si el
    administrador tiene más de uno activo en Admin → Origen de Datos, aparece el selector
-   "Buscar por:"; si solo hay uno, la búsqueda se queda tal como siempre: un campo de texto
-   que busca por expediente. Esto se vuelve a consultar cada vez que se carga la página, así
-   que si el administrador cambia la configuración, esta página lo refleja de inmediato.
+   "Buscar por:"; si solo hay uno, la búsqueda se queda sin selector visible, pero usando
+   SIEMPRE el criterio que de verdad esté activo — antes esto asumía que "sin selector
+   visible" significaba buscar por Expediente, lo cual estaba mal: si el único criterio activo
+   era, por ejemplo, DUI, la búsqueda seguía intentando por Expediente sin que nadie lo
+   notara, y nunca encontraba nada. Esto se vuelve a consultar cada vez que se carga la
+   página, así que si el administrador cambia la configuración, esta página lo refleja de
+   inmediato.
    ============================================================================ */
+let _criterioUnicoActivo = 'EXP'; // respaldo solo si de verdad no se puede saber cuál es
 (async function _criteriosInicializar() {
   try {
     const criterios = await llamarApi('criterios');
-    if (!criterios || criterios.length < 2) return; // comportamiento de siempre
+    if (!criterios || !criterios.length) return;
+    if (criterios.length === 1) { _criterioUnicoActivo = criterios[0].clave; return; }
     const sel = document.getElementById('criterioBusqueda');
     sel.innerHTML = criterios.map(c => `<option value="${c.clave}">${_escHtmlCalc(c.etiqueta)}</option>`).join('');
     document.getElementById('criterio-wrap').style.display = 'block';
-  } catch (e) { /* si falla, la búsqueda se queda tal como siempre fue */ }
+  } catch (e) { /* si falla, se queda buscando por EXP como respaldo */ }
 })();
 
 function _colorEstado(estado) {
@@ -124,7 +130,7 @@ async function consultar() {
   const val = document.getElementById('expId').value;
   if (!val) return;
   const selCriterio = document.getElementById('criterioBusqueda');
-  const criterio = (selCriterio && document.getElementById('criterio-wrap').style.display !== 'none') ? selCriterio.value : 'EXP';
+  const criterio = (selCriterio && document.getElementById('criterio-wrap').style.display !== 'none') ? selCriterio.value : _criterioUnicoActivo;
   const box = document.getElementById('res-box');
   box.style.display = 'block';
   box.innerHTML = '<p style="text-align:center;"><i class="fas fa-circle-notch fa-spin"></i> Buscando expediente...</p>';
