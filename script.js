@@ -11,7 +11,7 @@
 
    CONFIGURACIÓN — lo único que hay que llenar antes de publicar:
    ============================================================================ */
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyZq7IIKwKSOV2lqVORdRz3aJxRgXkpPmOoZdtj0PeggVAU865Rxlvlj8yiTrdwBreC/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwBBuQJMoWBDqp7TVZGk0C9g_hbNsuMaPFcAzlSXeRBaqFsoAAOS4vNfUtyytQBdFFL/exec";
 // Cómo conseguirla: en el editor de Apps Script → Implementar → Administrar
 // implementaciones → (el ícono de engranaje/copiar) → "URL de la aplicación web".
 // Debe verse algo así: https://script.google.com/macros/s/AKfycb.../exec
@@ -108,6 +108,7 @@ function _tarjetaExpediente(res) {
         <div style="font-size: 1rem; line-height:1.8;">
           <p><strong>Número:</strong> ${res.EXP}</p>
           <p><strong>Propietario:</strong> ${res.PROPIETARIO}</p>
+          ${res.TRAMITE ? `<p><strong>Tipo de Trámite:</strong> ${res.TRAMITE}</p>` : ''}
           <p><strong>Fecha Ingreso:</strong> ${res.FECHA}</p>
           <p><strong>Ubicación:</strong> ${res.DIRECCION}</p>
         </div>
